@@ -64,12 +64,13 @@ WORKDIR /pyafipws/
 # ADD ./requirements.txt /pyafipws/
 RUN pip install -r requirements.txt
 RUN python setup.py install
-RUN chmod 777 -R /usr/local/lib/python2.7/dist-packages/pyafipws/
+RUN chmod 777 -R /usr/local/lib/python2.7/site-packages/pyafipws/
 
 # RUN git clone https://github.com/reingart/pyafipws.git
 # WORKDIR /pyafipws/
 # RUN python setup.py install
-# RUN chmod 777 -R /usr/local/lib/python2.7/dist-packages/pyafipws/
+# RUN chmod 777 -R /usr/local/lib/python2.7/site-packages/pyafipws/
+
 
 # odoo etl, infra and others
 RUN pip install openerp-client-lib fabric erppeek fabtools
