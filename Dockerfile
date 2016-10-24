@@ -1,6 +1,96 @@
 FROM python:2.7.12
 MAINTAINER Blanco Martín & Asociados. <info@blancomartin.cl>
 
+USER root
+
+# Generate locale (es_AR for right odoo es_AR language config, and C.UTF-8 for postgres and general locale data)
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update -qq && apt-get install -y locales -qq
+RUN echo 'es_AR.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+RUN echo 'es_CL.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+RUN echo 'es_US.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+RUN echo 'C.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+RUN dpkg-reconfigure locales && /usr/sbin/update-locale LANG=C.UTF-8
+ENV LANG C.UTF-8
+ENV LANGUAGE C.UTF-8
+ENV LC_ALL C.UTF-8
+
+# added from odoo-bmya build
+RUN apt-get update && apt-get install -y git vim
+RUN apt-get install -y ghostscript
+
+# webservices dependencies
+RUN pip install urllib3
+
+# letsencrypt dependencies:
+RUN pip install acme-tiny
+RUN pip install IPy
+
+# woocommerce dependency
+RUN pip install woocommerce
+
+# used by many pip packages
+RUN apt-get install -y python-dev freetds-dev
+
+# Freetds an pymssql added in conjunction
+RUN pip install pymssql
+
+# odoo-extra
+RUN apt-get install -y python-matplotlib font-manager
+
+# odoo argentina (nuevo modulo de FE).
+RUN apt-get install -y swig libffi-dev libssl-dev python-m2crypto python-httplib2 mercurial
+# NECESATIOS PARA SIGNXML
+RUN apt-get install -y libxml2-dev libxslt-dev python-dev lib32z1-dev liblz-dev
+
+RUN pip install geopy==0.95.1 BeautifulSoup pyOpenSSL suds cryptography certifi
+
+# odoo bmya cambiado de orden (antes o despues de odoo argentina)
+# to be removed when we remove crypto
+RUN apt-get install -y swig libssl-dev
+# to be removed when we remove crypto
+RUN pip install suds
+
+# Agregado por Daniel Blanco para ver si soluciona el problema de la falta de la biblioteca pysimplesoap
+# RUN git clone https://github.com/pysimplesoap/pysimplesoap.git
+# WORKDIR /pysimplesoap/
+# RUN python setup.py install
+
+# instala pyafip desde google code usando mercurial
+# M2Crypto suponemos que no haria falta ahora
+# RUN hg clone https://code.google.com/p/pyafipws
+RUN git clone https://github.com/bmya/pyafipws.git
+WORKDIR /pyafipws/
+# ADD ./requirements.txt /pyafipws/
+RUN pip install -r requirements.txt
+RUN python setup.py install
+RUN chmod 777 -R /usr/local/lib/python2.7/dist-packages/pyafipws/
+
+# RUN git clone https://github.com/reingart/pyafipws.git
+# WORKDIR /pyafipws/
+# RUN python setup.py install
+# RUN chmod 777 -R /usr/local/lib/python2.7/dist-packages/pyafipws/
+
+# odoo etl, infra and others
+RUN pip install openerp-client-lib fabric erppeek fabtools
+
+# dte implementation
+RUN pip install xmltodict
+RUN pip install dicttoxml
+RUN pip install elaphe
+# RUN pip install hashlib
+RUN pip install cchardet
+RUN pip install lxml
+RUN pip install signxml
+
+RUN pip install pysftp
+
+# oca reports
+RUN pip install xlwt
+
+# odoo kineses
+RUN pip install xlrd
+
 # add user with the same user id as in core odoo package
 # unfortunately python comes with group 107 already defined so I used www-data as group
 RUN useradd -m -d /var/lib/odoo -s /bin/false -u 104 -g 33 odoo
