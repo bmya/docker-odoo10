@@ -1,5 +1,5 @@
-FROM bmya/base:latest
-MAINTAINER Blanco Martín y Asociados <info@blancomartin.cl>
+FROM debian:jessie
+MAINTAINER Blanco Martín & Asociados <daniel@blancomartin.cl>
 
 # Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
 RUN set -x; \
@@ -8,8 +8,7 @@ RUN set -x; \
             ca-certificates \
             curl \
             node-less \
-            python-gevent \
-            python-pip \
+            node-clean-css \
             python-pyinotify \
             python-renderpm \
             python-support \
@@ -18,23 +17,22 @@ RUN set -x; \
         && dpkg --force-depends -i wkhtmltox.deb \
         && apt-get -y install -f --no-install-recommends \
         && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false npm \
-        && rm -rf /var/lib/apt/lists/* wkhtmltox.deb \
-        && pip install psycogreen==1.0
+        && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
 # Install Odoo
 ENV ODOO_VERSION 10.0
-ENV ODOO_RELEASE 20161103
-RUN set -x; \
-        curl -o odoo.deb -SL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
-        && echo '298b9a3c752fbe8df1e6bc7e5ab9d84ce7d0061b odoo.deb' | sha1sum -c - \
-        && dpkg --force-depends -i odoo.deb \
-        && apt-get update \
-        && apt-get -y install -f --no-install-recommends \
-        && rm -rf /var/lib/apt/lists/* odoo.deb
+# ENV ODOO_RELEASE 20160726
+
+RUN curl -o - https://nightly.odoo.com/odoo.key | apt-key add -
+RUN echo "deb http://nightly.odoo.com/10.0/nightly/deb/ ./" >> /etc/apt/sources.list
+RUN apt-get update && apt-get -y install odoo
+
 
 # Copy entrypoint script and Odoo configuration file
 COPY ./entrypoint.sh /
-COPY ./odoo.conf /etc/odoo/
+RUN chmod +x entrypoint.sh
+RUN chown odoo:odoo entrypoint.sh
+COPY ./odoo.conf /etc/odoo
 RUN chown odoo /etc/odoo/odoo.conf
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
@@ -46,7 +44,7 @@ VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 EXPOSE 8069 8071
 
 # Set the default config file
-ENV ODOO_RC /etc/odoo/odoo.conf
+ENV ODOO_SERVER /etc/odoo/odoo.conf
 
 # Set default user when running the container
 USER odoo
