@@ -1,5 +1,5 @@
-FROM bmya/base:latest
-MAINTAINER Blanco Martín y Asociados <info@blancomartin.cl>
+FROM debian:jessie
+MAINTAINER Blanco Martín & Asociados <info@blancomartin.cl>
 
 # Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
 RUN set -x; \
