@@ -1,5 +1,5 @@
 FROM debian:jessie
-MAINTAINER Blanco Martín & Asociados <info@blancomartin.cl>
+MAINTAINER Blanco Martin y Asociados <info@blancomartin.cl>
 
 # Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
 RUN set -x; \
@@ -10,9 +10,9 @@ RUN set -x; \
             node-less \
             python-gevent \
             python-pip \
-            python-pyinotify \
             python-renderpm \
             python-support \
+            python-watchdog \
         && curl -o wkhtmltox.deb -SL http://nightly.odoo.com/extra/wkhtmltox-0.12.1.2_linux-jessie-amd64.deb \
         && echo '40e8b906de658a2221b15e4e8cd82565a47d7ee8 wkhtmltox.deb' | sha1sum -c - \
         && dpkg --force-depends -i wkhtmltox.deb \
@@ -23,10 +23,10 @@ RUN set -x; \
 
 # Install Odoo
 ENV ODOO_VERSION 10.0
-ENV ODOO_RELEASE 20161103
+ENV ODOO_RELEASE 20171030
 RUN set -x; \
         curl -o odoo.deb -SL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
-        && echo '298b9a3c752fbe8df1e6bc7e5ab9d84ce7d0061b odoo.deb' | sha1sum -c - \
+        && echo 'b250b2bbcda6056146d323eb0d7a1e609a09d0ec odoo.deb' | sha1sum -c - \
         && dpkg --force-depends -i odoo.deb \
         && apt-get update \
         && apt-get -y install -f --no-install-recommends \
